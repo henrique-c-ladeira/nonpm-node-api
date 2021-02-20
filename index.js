@@ -1,23 +1,36 @@
 const http = require('http');
+const { parse } = require('path');
 const { StringDecoder } = require('string_decoder');
 const url = require('url');
+const handlers = require('./lib/handlers');
+const helpers = require('./lib/helpers');
 
-const server = http.createServer((req,res) => {
+const server = http.createServer(async (req,res) => {
 
-  const parsedUrl = url.parse(req.url, true);
-  const trimmedPath = parsedUrl.pathname.replace(/^\/+|\/+$/g, '');
-  const queryStringObject = parsedUrl.query;
   const method = req.method.toLowerCase();
   const headers = req.headers;
+
+  var baseURL = `http://${req.headers.host}/`;
+  const parsedUrl = new URL(req.url,baseURL);
+  const trimmedPath = parsedUrl.pathname.replace(/^\/+|\/+$/g, '');
+  
+  const queryStringObject = {};
+  parsedUrl.searchParams.forEach((value, name) => {
+    queryStringObject[name] = value;
+  });
+
+  console.log(queryStringObject);
 
   const decoder = new StringDecoder('utf-8');
   let buffer = '';
   req.on('data', (data) => buffer += decoder.write(data));
   req.on('end', () => {
     buffer += decoder.end();
-    const payload = buffer;
+    const payload = helpers.parseJsonToObject(buffer);
 
     const chosenHandler = typeof(router[trimmedPath]) !== 'undefined' ? router[trimmedPath] : handlers.notFound;
+
+    
     const data = {
       trimmedPath,
       queryStringObject,
@@ -27,6 +40,7 @@ const server = http.createServer((req,res) => {
     };
 
     chosenHandler(data, (statusCode, payload) => {
+      console.log(data);
       statusCode = typeof(statusCode) == 'number' ? statusCode : 200;
       payload = typeof(payload) == 'object' ? payload : {};
       const payloadString = JSON.stringify(payload);
@@ -35,26 +49,15 @@ const server = http.createServer((req,res) => {
       res.writeHead(statusCode);
       res.end(payloadString);
       console.log(trimmedPath,statusCode);
-    })
+    });
 
-  })
+  });
 
 });
 
-server.listen(3000, () => "Oh GEE I'm up!");
-
-const handlers = {};
-
-handlers.hello = (data,callback) => {
-  callback(200, {message: 'Hi, do you wanna develop an app?'});
-}
-
-
-handlers.notFound = (data,callback) => {
-  callback(404);
-}
-
+server.listen(3000, () => console.log("Oh GEE I'm up!"));
 
 router = {
-  hello: handlers.hello,
+  ping: handlers.ping,
+  users: handlers.users,
 }
