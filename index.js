@@ -5,21 +5,20 @@ const url = require('url');
 const handlers = require('./lib/handlers');
 const helpers = require('./lib/helpers');
 
-const server = http.createServer(async (req,res) => {
+const server = http.createServer(async (req, res) => {
 
   const method = req.method.toLowerCase();
   const headers = req.headers;
 
   var baseURL = `http://${req.headers.host}/`;
-  const parsedUrl = new URL(req.url,baseURL);
+  const parsedUrl = new URL(req.url, baseURL);
   const trimmedPath = parsedUrl.pathname.replace(/^\/+|\/+$/g, '');
-  
+
   const queryStringObject = {};
   parsedUrl.searchParams.forEach((value, name) => {
     queryStringObject[name] = value;
   });
 
-  console.log(queryStringObject);
 
   const decoder = new StringDecoder('utf-8');
   let buffer = '';
@@ -28,9 +27,9 @@ const server = http.createServer(async (req,res) => {
     buffer += decoder.end();
     const payload = helpers.parseJsonToObject(buffer);
 
-    const chosenHandler = typeof(router[trimmedPath]) !== 'undefined' ? router[trimmedPath] : handlers.notFound;
+    const chosenHandler = typeof (router[trimmedPath]) !== 'undefined' ? router[trimmedPath] : handlers.notFound;
 
-    
+
     const data = {
       trimmedPath,
       queryStringObject,
@@ -40,15 +39,14 @@ const server = http.createServer(async (req,res) => {
     };
 
     chosenHandler(data, (statusCode, payload) => {
-      console.log(data);
-      statusCode = typeof(statusCode) == 'number' ? statusCode : 200;
-      payload = typeof(payload) == 'object' ? payload : {};
+      statusCode = typeof (statusCode) == 'number' ? statusCode : 200;
+      payload = typeof (payload) == 'object' ? payload : {};
       const payloadString = JSON.stringify(payload);
 
-      res.setHeader('Content-Type','application/json');
+      res.setHeader('Content-Type', 'application/json');
       res.writeHead(statusCode);
       res.end(payloadString);
-      console.log(trimmedPath,statusCode);
+      console.log(trimmedPath, method, statusCode);
     });
 
   });
@@ -60,4 +58,6 @@ server.listen(3000, () => console.log("Oh GEE I'm up!"));
 router = {
   ping: handlers.ping,
   users: handlers.users,
+  tokens: handlers.tokens,
+  menu: handlers.menu,
 }
