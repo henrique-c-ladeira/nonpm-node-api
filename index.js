@@ -60,4 +60,6 @@ router = {
   users: handlers.users,
   tokens: handlers.tokens,
   menu: handlers.menu,
+  shopping: handlers.shopping,
+  checkout: handlers.checkout,
 }
