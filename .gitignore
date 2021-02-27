@@ -1,4 +1,7 @@
-data/test/*
 data/users/*
+!data/users/sample@test.ok.json
 data/tokens/*
+!data/tokens/sample_obja9jbozd8ab.json
 data/carts/*
+!data/carts/sample@test.ok.json
+# config.js
