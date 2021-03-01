@@ -1,0 +1,7 @@
+body {
+  background-image: url("../imgs/mud.png");
+
+  background-repeat: no-repeat;
+  background-size: contain;
+  min-height: 90vh;
+}
