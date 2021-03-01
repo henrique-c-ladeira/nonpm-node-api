@@ -4,4 +4,10 @@ body {
   background-repeat: no-repeat;
   background-size: contain;
   min-height: 90vh;
+  min-width: 90vw;
+}
+
+body::before {
+  position: absolute;
+  z-index: -1;
 }

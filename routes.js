@@ -2,6 +2,7 @@ const handlers = require('./lib/handlers');
 
 const router = {
   '': handlers.index,
+  'signup': handlers.users.create,
   
   'ping': handlers.ping,
 
