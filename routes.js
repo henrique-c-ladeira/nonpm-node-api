@@ -2,7 +2,8 @@ const handlers = require('./lib/handlers');
 
 const router = {
   '': handlers.index,
-  'signup': handlers.users.create,
+  'signup': handlers.usersView.create,
+  'shop': handlers.shop,
   
   'ping': handlers.ping,
 

@@ -1,8 +1,8 @@
 body {
   background-image: url("../imgs/mud.png");
-
+  background-color: #e8dcd3;
   background-repeat: no-repeat;
-  background-size: contain;
+  background-size: cover;
   min-height: 90vh;
   min-width: 90vw;
 }
