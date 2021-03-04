@@ -20,12 +20,17 @@
           <img src="/public/logo.png" width="28" height="28">
           <span>Home</span>
         </a>
-        <a class="navbar-item" href="/signup">
-          <span>Login</span>
+        <a  id="login"  class="loggedIn navbar-item" href="/signup">
+          <span >Login</span>
         </a>
-        <a class="navbar-item" href="/shop">
-          <span>Shop!</span>
+        <a id="shop" class="loggedIn navbar-item" href="/shop">
+          <span >Shop!</span>
         </a>
+        <div class=" navbar-item">
+        <button id="logout" class="loggedIn button is-danger" onclick="app.logout()" >
+          <span >Logout</span>
+        </button>
+        </div>
       </div>
     
       

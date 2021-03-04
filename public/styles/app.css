@@ -11,3 +11,7 @@ body::before {
   position: absolute;
   z-index: -1;
 }
+
+.loggedIn {
+  visibility: hidden;
+}
