@@ -39,7 +39,7 @@ app.getSessionToken = function(){
 };
 
 app.setSessionToken = function(token){
-  app.config.sessionToken = token;
+  app.config.sessionToken = token
   var tokenString = JSON.stringify(token);
   localStorage.setItem('token',tokenString);
   if(token){
@@ -50,50 +50,44 @@ app.setSessionToken = function(token){
 };
 
 // Renew the token
-// app.renewToken = function(callback){
-//   var currentToken = typeof(app.config.sessionToken) == 'object' ? app.config.sessionToken : false;
-//   if(currentToken){
-//     // Update the token with a new expiration
-//     var payload = {
-//       'id' : currentToken.id,
-//       'extend' : true,
-//     };
-//     app.client.request(undefined,'api/tokens','PUT',undefined,payload,function(statusCode,responsePayload){
-//       // Display an error on the form if needed
-//       if(statusCode == 200){
-//         // Get the new token details
-//         var queryStringObject = {'id' : currentToken.id};
-//         app.client.request(undefined,'api/tokens','GET',queryStringObject,undefined,function(statusCode,responsePayload){
-//           // Display an error on the form if needed
-//           if(statusCode == 200){
-//             app.setSessionToken(responsePayload);
-//             callback(false);
-//           } else {
-//             app.setSessionToken(false);
-//             callback(true);
-//           }
-//         });
-//       } else {
-//         app.setSessionToken(false);
-//         callback(true);
-//       }
-//     });
-//   } else {
-//     app.setSessionToken(false);
-//     callback(true);
-//   }
-// };
+app.renewToken = async () => {
+  const currentToken = app.config.sessionToken;
+  if(!currentToken) {
+    app.setSessionToken(false);
+    return false;
+  }
 
-// // Loop to renew token often
-// app.tokenRenewalLoop = function(){
-//   setInterval(function(){
-//     app.renewToken(function(err){
-//       if(!err){
-//         console.log("Token renewed successfully @ "+Date.now());
-//       }
-//     });
-//   },1000 * 60);
-// };
+  const payload = {
+    id : currentToken,
+    extend : true,
+  };
+
+  const res = await app.client.request(undefined,'api/tokens','PUT',undefined,payload);
+  if(res.statusCode !== 200) {
+    app.setSessionToken(false);
+    return false;
+  }
+  // Get the new token details
+  const queryStringObject = {'id' : currentToken};
+  const resRead = await app.client.request(undefined,'api/tokens','GET',queryStringObject,undefined);
+  // Display an error on the form if needed
+  if(resRead.statusCode !== 200) {
+    app.setSessionToken(false);
+    return false;
+  }
+  app.setSessionToken(resRead.id);
+  return true;
+};
+
+// Loop to renew token often
+app.tokenRenewalLoop = () => {
+  setInterval(async () => {
+    const isRenewed = await app.renewToken();
+    if(isRenewed)
+      console.log("Token renewed successfully @ "+Date.now());
+  },1000 * 60);
+};
+
 
 app.client = {};
 
@@ -121,13 +115,15 @@ app.client.request = async (headers, path, method, queryStringObject, payload) =
   const reqConfig = {
     method,
     headers,
-    body: JSON.stringify(payload)
   }
   
+  if(!(Object.keys(payload).length === 0 && payload.constructor === Object))
+    reqConfig.body = JSON.stringify(payload);
 
   const res = await fetch(requestUrl, reqConfig);
   try {
-    return res.json();
+    const data = await res.json();
+    return { ...data, statusCode: res.status }
   } catch {
     return false;
   }
@@ -152,7 +148,10 @@ app.signin = async () => {
 }
 
 app.logout = async () => {
-  const res = await app.client.request({Application: 'application/json'},'/api/tokens','DELETE',{id: app.config.sessionToken});
+  const res = await app.client.request({ Application: 'application/json' },
+                                        '/api/tokens',
+                                        'DELETE',
+                                        { id: app.config.sessionToken });
   app.setSessionToken(false);
   window.location.pathname = '/';
 }
@@ -164,14 +163,12 @@ app.signout = async () => {
 // Init (bootstrapping)
 app.init = function(){
 
-  // Bind all form submissions
-  // app.bindForms();
 
   // // Get the token from localstorage
   app.getSessionToken();
 
   // // Renew token
-  // app.tokenRenewalLoop();
+  app.tokenRenewalLoop();
 
 };
 

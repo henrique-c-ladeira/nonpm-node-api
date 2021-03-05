@@ -10,5 +10,9 @@
   {
     "name": "Hamburguer",
     "price": 1650
+  },
+  {
+    "name": "Hamburguer22",
+    "price": 1250
   }
 ]
