@@ -105,7 +105,7 @@ app.client.request = async (headers, path, method, queryStringObject, payload) =
       token: app.config.sessionToken};
   }
 
-  isEmptyQueryStringObject = queryStringObject && Object.keys(queryStringObject).length === 0 && queryStringObject.constructor === Object;
+  const isEmptyQueryStringObject = queryStringObject && Object.keys(queryStringObject).length === 0 && queryStringObject.constructor === Object;
 
   const requestUrl = 
     `${path}${isEmptyQueryStringObject ? '' : '?'}${Object.entries(queryStringObject)
@@ -148,28 +148,87 @@ app.signin = async () => {
 }
 
 app.logout = async () => {
-  const res = await app.client.request({ Application: 'application/json' },
-                                        '/api/tokens',
-                                        'DELETE',
-                                        { id: app.config.sessionToken });
+  await app.client.request({ Application: 'application/json' },
+        '/api/tokens',
+        'DELETE',
+        { id: app.config.sessionToken });
+
   app.setSessionToken(false);
   window.location.pathname = '/';
 }
 
-app.signout = async () => {
+app.addItem = async (event) => {
+  console.trace(event);
+  const item = event.id;
+  console.trace(item);
 
+  const token = await app.client.request({ Application: 'application/json' },
+                '/api/tokens',
+                'GET',
+                { id: app.config.sessionToken });
+
+  const email = token.email;
+
+  const res = await app.client.request({ Application: 'application/json' },
+            '/api/shopping',
+            'POST',
+            undefined,
+            { email, item });
+  
+  const cartResponse = await app.client.request({ Application: 'application/json' },
+              '/api/shopping',
+              'GET',{email});
+  console.trace(cartResponse);
+  const shoppingView = document.querySelector('#shopping-cart');
+  shoppingView.textContent = '';
+  Object.values(cartResponse).map((item) => {
+    const element = document.createElement('div');
+    element.classList.add('card');
+    const textItem = document.createTextNode(item.name);
+    element.appendChild(textItem);
+    console.log(element);
+    console.log(shoppingView);
+    shoppingView.appendChild(element);
+  })
 }
 
+app.loadItens = async () => {
+  const shoppingView = document.querySelector('#shopping-cart');
+  if (!shoppingView) return;
+  
+  const token = await app.client.request({ Application: 'application/json' },
+                '/api/tokens',
+                'GET',
+                { id: app.config.sessionToken });
+
+  const email = token.email;
+  
+  const cartResponse = await app.client.request({ Application: 'application/json' },
+              '/api/shopping',
+              'GET',{email});
+  console.trace(cartResponse);
+  
+  Object.values(cartResponse).map((item) => {
+    const element = document.createElement('div');
+    element.classList.add('card');
+    const textItem = document.createTextNode(item.name);
+    element.appendChild(textItem);
+    console.log(element);
+    console.log(shoppingView);
+    shoppingView.appendChild(element);
+  })
+};
+
 // Init (bootstrapping)
-app.init = function(){
+app.init = () => {
 
 
-  // // Get the token from localstorage
+  // Get the token from localstorage
   app.getSessionToken();
-
-  // // Renew token
+  app.renewToken()
+  // Renew token
   app.tokenRenewalLoop();
-
+  app.loadItens(); 
 };
 
 window.onload = function(){
