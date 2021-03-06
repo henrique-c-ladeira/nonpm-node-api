@@ -147,6 +147,23 @@ app.signin = async () => {
     alert('Invalid Login and/or Password.');
 }
 
+app.signup = async () => {
+  const name = document.querySelector('#nameSignup').value;
+  const address = document.querySelector('#addressSignup').value;
+  const email = document.querySelector('#emailSignup').value;
+  const password = document.querySelector('#passwordSignup').value;
+  const tosAgreement = document.querySelector('#tosAgreementSignup').checked;
+  console.log(tosAgreement);
+  res = await app.client.request({Application: 'application/json'},'/api/users','POST',undefined,{name,address,email,password,tosAgreement});
+  console.log(res);
+  if(!res.Error) {
+    const res = await app.login(email,password);
+    window.location.pathname = '/shop';
+  } else {
+    alert(res.Error);
+  }
+}
+
 app.logout = async () => {
   await app.client.request({ Application: 'application/json' },
         '/api/tokens',

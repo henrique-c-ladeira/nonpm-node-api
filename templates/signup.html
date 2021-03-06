@@ -7,31 +7,38 @@
   <div class="field">
     <label class="label">Name</label>
     <div class="control">
-      <input class="input" type="text" >
+      <input class="input" type="text" id="nameSignup" >
+    </div>
+  </div>
+
+  <div class="field">
+    <label class="label">Address</label>
+    <div class="control">
+      <input class="input" type="text" id="addressSignup" >
     </div>
   </div>
 
   <div class="field">
     <label class="label">Email</label>
     <div class="control">
-      <input class="input" type="text" >
+      <input class="input" type="text" id="emailSignup" >
     </div>
   </div>
 
   <div class="field">
     <label class="label">Password</label>
     <div class="control">
-      <input class="input" type="password" >
+      <input class="input" type="password" id="passwordSignup" >
     </div>
   </div>
 
   <label class="checkbox">
-    <input type="checkbox">
+    <input type="checkbox" id="tosAgreementSignup">
       I agree to everything. Therefore I abdicate all my titles and belongings.
   </label>
 
   <div class="pt-5">
-    <button class="button is-primary">Sign-up</button>
+    <button class="button is-primary" onclick="app.signup()">Sign-up</button>
   </div>
 </div>
 
