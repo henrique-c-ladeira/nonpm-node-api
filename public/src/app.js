@@ -158,9 +158,10 @@ app.logout = async () => {
 }
 
 app.addItem = async (event) => {
-  console.trace(event);
+  const shoppingView = document.querySelector('#shopping-cart');
+  if (!shoppingView) return;
+
   const item = event.id;
-  console.trace(item);
 
   const token = await app.client.request({ Application: 'application/json' },
                 '/api/tokens',
@@ -178,18 +179,10 @@ app.addItem = async (event) => {
   const cartResponse = await app.client.request({ Application: 'application/json' },
               '/api/shopping',
               'GET',{email});
-  console.trace(cartResponse);
-  const shoppingView = document.querySelector('#shopping-cart');
   shoppingView.textContent = '';
-  Object.values(cartResponse).map((item) => {
-    const element = document.createElement('div');
-    element.classList.add('card');
-    const textItem = document.createTextNode(item.name);
-    element.appendChild(textItem);
-    console.log(element);
-    console.log(shoppingView);
-    shoppingView.appendChild(element);
-  })
+  
+  app.createCartList(cartResponse, shoppingView);
+
 }
 
 app.loadItens = async () => {
@@ -206,18 +199,128 @@ app.loadItens = async () => {
   const cartResponse = await app.client.request({ Application: 'application/json' },
               '/api/shopping',
               'GET',{email});
-  console.trace(cartResponse);
   
-  Object.values(cartResponse).map((item) => {
+  app.createCartList(cartResponse, shoppingView);
+
+};
+
+app.deleteItem = async (event) => {
+  const shoppingView = document.querySelector('#shopping-cart');
+  if (!shoppingView) return;
+
+  const item = event.id;
+
+  const token = await app.client.request({ Application: 'application/json' },
+                '/api/tokens',
+                'GET',
+                { id: app.config.sessionToken });
+
+  const email = token.email;
+  
+  const cartResponse = await app.client.request({ Application: 'application/json' },
+  '/api/shopping',
+  'DELETE',undefined,{email, item});
+  
+  shoppingView.textContent = '';
+  app.createCartList(cartResponse, shoppingView);
+  
+}
+
+app.createCartList = (cartResponse, shoppingView) => {
+  shoppingView.classList.add('has-text-centered');
+  shoppingView.classList.add('columns');
+  shoppingView.classList.add('is-multiline');
+  const total = Object.values(cartResponse).filter((notNull) => notNull?.price).reduce(((sum,cur) => { 
+    return (sum + cur.price);
+  }),0);
+
+  const totalNode = document.getElementById('total');
+  totalNode.textContent = '';
+  totalNode.classList.add('subtitle')
+  const totalText = document.createTextNode(`TOTAL - $${(total/100).toFixed(2)}`);
+  totalNode.appendChild(totalText);
+  
+
+  Object.values(cartResponse).filter((notNull) => notNull?.name).map((item) => {
+
     const element = document.createElement('div');
     element.classList.add('card');
-    const textItem = document.createTextNode(item.name);
-    element.appendChild(textItem);
-    console.log(element);
-    console.log(shoppingView);
+    element.classList.add('p-2');
+    element.classList.add('column');
+    const div = document.createElement('div');
+    const textItem = document.createTextNode(`${item.name} - $${(item.price/100).toFixed(2)}`);
+    div.appendChild(textItem);
+    element.appendChild(div);
+    
+    const button = document.createElement('button');
+    button.addEventListener('click', () => app.deleteItem(button));
+    button.setAttribute('id', item.name);
+    button.classList.add('button');
+    button.classList.add('is-danger');
+    button.classList.add('p-1');
+    const textButton = document.createTextNode('delete');
+    button.appendChild(textButton);
+
+
+
+    element.appendChild(button);
     shoppingView.appendChild(element);
   })
+
 };
+
+app.mountCard = async () => {
+  const isCard = document.querySelector('#card-element');
+  if (!isCard) return;
+  const token = await app.client.request({ Application: 'application/json' },
+                '/api/tokens',
+                'GET',
+                { id: app.config.sessionToken });
+
+  const email = token.email;
+  const stripe = Stripe('pk_test_TYooMQauvdEDq54NiTphI7jx');
+  const elements = stripe.elements();
+  const style = {
+    base: {
+      // Add your base input styles here. For example:
+      fontSize: '16px',
+      color: '#32325d',
+    },
+  };
+
+  // Create an instance of the card Element.
+  const card = elements.create('card', {style: style});
+  // Add an instance of the card Element into the `card-element` <div>.
+  card.mount('#card-element');
+
+
+  const form = document.getElementById('payment-form');
+  form.addEventListener('submit', function(event) {
+    event.preventDefault();
+    
+
+    stripe.createToken(card).then(async function(result) {
+      if (result.error) {
+        // Inform the customer that there was an error.
+        const errorElement = document.getElementById('card-errors');
+        errorElement.textContent = result.error.message;
+      } else {
+        const textItem = document.createTextNode('Processing payment...');
+        form.appendChild(textItem);
+        // Send the token to your server.
+        await app.client.request({ Application: 'application/json' },
+            '/api/checkout',
+            'POST',
+            undefined,
+            { email, cardToken: result.token.id });
+        alert("Payment Done! I think.... Maybe you should check your email.");
+        window.location = '/shop';
+      }
+    });
+  });
+
+}
+
 
 // Init (bootstrapping)
 app.init = () => {
@@ -229,6 +332,7 @@ app.init = () => {
   // Renew token
   app.tokenRenewalLoop();
   app.loadItens(); 
+  app.mountCard();
 };
 
 window.onload = function(){

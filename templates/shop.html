@@ -1,5 +1,21 @@
-<div class="section is-medium columns is-centered">
 
+  <form class="card has-background-primary-light" action="api/checkout" method="post" id="payment-form">
+    <div class="form-row">
+      <label class="subtitle has-text-primary-dark"for="card-element">
+        Credit or debit card
+      </label>
+      <div class="p-3" id="card-element">
+        <!-- A Stripe Element will be inserted here. -->
+      </div>
+      
+      <!-- Used to display Element errors. -->
+      <div id="card-errors" role="alert"></div>
+    </div>
+    
+    <button class="button">Submit Payment</button>
+  </form>
+  
+  <div class="section is-medium columns is-centered">
   <div class="column is-6 has-background-light">
     <h1 class="title"> Menu </h1>
     <h2 class="subtitle"> Fill up your cart </h2>
@@ -8,9 +24,10 @@
 
   </div>
 
-  <div class="column is-6 has-background-light">
+  <div class="column is-6 has-background-transparent">
     <h2 class="subtitle"> Your cart </h2>
-    <div id="shopping-cart">
+    <div id="total"> </div>
+    <div id="shopping-cart" class=" p-5">
       
     </div>
   </div>
