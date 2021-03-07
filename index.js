@@ -1,12 +1,16 @@
 const server = require('./lib/server');
 const cli = require('./lib/cli');
+const config = require('./lib/config');
 
 app = {};
 
 app.init = () => {
-  server.listen(3000, () => console.log("Oh GEE I'm up!"));
+  server.listen(config.httpPort, () => console.debug("Oh GEE I'm up!"));
 
   setTimeout(() => cli.init(),50);
 }
 
-app.init();
+if(require.main === module)
+  app.init();
+
+module.exports = app;
