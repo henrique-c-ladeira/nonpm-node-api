@@ -4,5 +4,8 @@ data/tokens/*
 !data/tokens/sample_obja9jbozd8ab.json
 data/carts/*
 !data/carts/sample@test.ok.json
+
+data/orders/*
+!data/orders/sample_order.json
 keys.js
 # config.js
